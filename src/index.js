@@ -1,13 +1,7 @@
 const moment = require('moment');
-const pino = require('pino')();
+const logger = require('pino')();
 const { VError } = require('verror');
 
-const { connect } = require('./web3_connector');
-const calendar = require('./calendar');
-const contract = require('./contract');
-const { logAndExit } = require('./util');
-const abi = require('../contract/scheduler_abi.json');
-const credentials = require('../credentials.json');
 const {
   CALENDAR_ID,
   OWNER_NAME,
@@ -16,11 +10,18 @@ const {
   SCHEDULER_ADDRESS,
   LAST_BLOCK_PATH
 } = require('./config');
+
+const { connect } = require('./web3_connector');
+const calendar = require('./calendar');
+const { logAndExit } = require('./util');
+const schedulerABI = require('../contract/scheduler_abi.json');
+const credentials = require('../credentials.json');
 const blocTracker = require('./block_tracker')(LAST_BLOCK_PATH);
+const contract = require('./contract')(schedulerABI, SCHEDULER_ADDRESS);
 
 const auth = calendar.getAuth(credentials);
 
-const listenerCallback = (error, data) => {
+const eventCB = (error, data) => {
   if (error) {
     const msg = 'Failed to listen to contract events';
     return logAndExit(new VError(error, msg));
@@ -29,7 +30,7 @@ const listenerCallback = (error, data) => {
   const { blockNumber, returnValues } = data;
 
   blocTracker.setLastConsumed(blockNumber)
-    .catch(err => pino.error(err));
+    .catch(err => logger.error(err));
 
   const { name, email, company, date } = returnValues;
   const event = calendar.event(
@@ -41,16 +42,17 @@ const listenerCallback = (error, data) => {
   );
 
   calendar.register(CALENDAR_ID, auth, event)
-    .then(() => pino.info({ event }, 'Event registered'))
-    .catch(err => pino.error(err));
+    .then(() => logger.info({ event }, 'Event registered'))
+    .catch(err => logger.error(err));
 };
 
-connect(PROVIDER_URL).then((provider) => {
-  pino.info(`Connected to ${PROVIDER_URL}`);
-  return blocTracker.getLastConsumed().then(blockNumber => {
-    const fromBlock = (blockNumber) ? blockNumber + 1 : 0;
-    const scheduler = contract.init(provider, abi, SCHEDULER_ADDRESS);
-    contract.listen(scheduler, 'NewAppointment', fromBlock, listenerCallback);
-    pino.info(`Listening to events from block ${fromBlock} onwards`);
-  });
-}).catch(logAndExit);
+connect(PROVIDER_URL)
+  .then((provider) => {
+    logger.info(`Connected to ${PROVIDER_URL}`);
+    return blocTracker.getLastConsumed().then(blockNumber => {
+      const fromBlock = (blockNumber) ? blockNumber + 1 : 0;
+      contract(provider).listen('NewAppointment', fromBlock, eventCB);
+      logger.info(`Listening to events from block ${fromBlock} onwards`);
+    });
+  })
+  .catch(logAndExit);

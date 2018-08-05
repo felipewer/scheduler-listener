@@ -1,13 +1,15 @@
 const Web3 = require('web3');
 
-const init = (provider, abi, address) => {
-  const web3 = new Web3(provider);
-  return new web3.eth.Contract(abi, address);
+const contract = (abi, address) => provider => {
+
+  const listen = (selector, fromBlock, callback) => {
+    const options = { fromBlock, toBlock: 'latest' };
+    const web3 = new Web3(provider);
+    const instance = new web3.eth.Contract(abi, address);
+    instance.events[selector](options, callback);
+  };
+
+  return { listen };
 };
 
-const listen = (instance, selector, fromBlock, callback) => {
-  const options = { fromBlock, toBlock: 'latest' };
-  instance.events[selector](options, callback);
-};
-
-module.exports = { init, listen };
+module.exports = contract;

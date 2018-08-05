@@ -1,6 +1,6 @@
-const pino = require('pino')();
+const logger = require('pino')();
 
 exports.logAndExit = (err) => {
-  pino.error(err); 
+  logger.error(err); 
   process.exit(err.code || 1);
 };
