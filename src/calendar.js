@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { VError } = require('verror');
 
 const api = google.calendar('v3');
 const apiScope = 'https://www.googleapis.com/auth/calendar';
@@ -24,12 +25,17 @@ const event = (owner, name, company, email, dateTime) => ({
 });
 
 const register = (calendarId, auth, event) => (
-  auth.authorize().then(() => api.events.insert({
-    auth,
-    calendarId,
-    sendNotifications: true,
-    resource: event,
-  }))
+  auth.authorize()
+    .then(() => api.events.insert({
+      auth,
+      calendarId,
+      sendNotifications: true,
+      resource: event,
+    }))
+    .catch(err => {
+      const msg = 'Failed to register event in calendar';
+      throw new VError(err, msg);
+    })
 );
 
 module.exports = {

@@ -1,21 +1,33 @@
 const fs = require('fs');
-const path = require('path');
 const util = require('util');
+const { VError } = require('verror');
 
 const fsWriteFile = util.promisify(fs.writeFile);
 const fsReadFile = util.promisify(fs.readFile);
 
-const lastConsumed = (blockNumber = null) => {
-  const filePath = path.join(__dirname, '..', 'block_number');
-  if (blockNumber){
-    return fsWriteFile(filePath, blockNumber);
-  } else {
-    return fsReadFile(filePath).then(block => parseInt(block, 10))
+const blocTracker = (lastBlockPath) => {
+
+  const getLastConsumed = () => (
+    fsReadFile(lastBlockPath)
+      .then(block => parseInt(block, 10))
       .catch(err => {
-        if (err.code !== 'ENOENT') throw err;
+        if (err.code !== 'ENOENT') {
+          const msg = 'Failed to read last consumed block number';
+          throw new VError(err, msg);
+        }
         return null;
-      });
-  }
+      })
+  );
+  
+  const setLastConsumed = (blockNumber) => (
+    fsWriteFile(lastBlockPath, blockNumber)
+      .catch(err => {
+        const msg = 'Failed to save last consumed block number';
+        throw new VError(err, msg);
+      })
+  );
+
+  return { getLastConsumed, setLastConsumed };
 };
 
-module.exports = { lastConsumed };
+module.exports = blocTracker;

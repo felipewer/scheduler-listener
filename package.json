@@ -16,6 +16,8 @@
     "dotenv": "^6.0.0",
     "googleapis": "^32.0.0",
     "moment": "^2.22.2",
+    "pino": "^4.17.6",
+    "verror": "^1.10.0",
     "web3": "1.0.0-beta.35"
   },
   "devDependencies": {
