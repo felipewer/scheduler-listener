@@ -33,10 +33,10 @@ const calendar = (calendarId, credentials, owner) => {
           end: moment(item.end.dateTime)
         })))
       )
-      .then(times => (
-        !times.some(({ start, end }) => event.isBetween(start, end, 'm', '[)'))
-      ))
-      .then(free => { 
+      .then(times => {
+        const free = !times.some(({ start, end }) => (
+          event.isBetween(start, end, 'm', '[)')
+        ));
         if (!free) {
           throw VError('Time (%s) already taken', event.format());
         }
