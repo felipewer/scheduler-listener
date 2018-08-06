@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+
+  scheduler:
+    build: .
+    environment:
+      - PROVIDER_URL
+      - SCHEDULER_ADDRESS
+      - CALENDAR_ID
+      - OWNER_NAME
+      - OWNER_EMAIL
+      - NODE_ENV
+    volumes:
+      - ./credentials.json:/usr/src/app/credentials.json
+    network_mode: host
