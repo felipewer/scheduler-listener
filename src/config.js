@@ -1,4 +1,3 @@
-const path = require('path');
 require('dotenv').config();
 
 const getEnv = (variable) => {
@@ -13,4 +12,6 @@ exports.SCHEDULER_ADDRESS = getEnv('SCHEDULER_ADDRESS');
 exports.CALENDAR_ID = getEnv('CALENDAR_ID');
 exports.OWNER_NAME = getEnv('OWNER_NAME');
 exports.OWNER_EMAIL = getEnv('OWNER_EMAIL');
-exports.LAST_BLOCK_PATH = path.join(__dirname, '..', 'block_number');
+exports.MIN_HOUR = getEnv('MIN_HOUR');
+exports.MAX_HOUR = getEnv('MAX_HOUR');
+exports.TIMEZONE = getEnv('TIMEZONE');

@@ -7,6 +7,9 @@ const {
   OWNER_EMAIL,
   PROVIDER_URL,
   SCHEDULER_ADDRESS,
+  MIN_HOUR,
+  MAX_HOUR,
+  TIMEZONE
 } = require('./config');
 
 const web3Conn = require('./web3_connector');
@@ -16,7 +19,8 @@ const schedulerABI = require('../contract/scheduler_abi.json');
 const contract = require('./contract')(schedulerABI, SCHEDULER_ADDRESS);
 
 const owner = { name: OWNER_NAME, email: OWNER_EMAIL };
-const calendar = require('./calendar')(CALENDAR_ID, credentials, owner);
+const timeLimits = { minHour: MIN_HOUR, maxHour: MAX_HOUR, timezone: TIMEZONE };
+const calendar = require('./calendar')(CALENDAR_ID, credentials, owner, timeLimits);
 
 const eventCB = (error, data) => {
   if (error) {
@@ -25,7 +29,8 @@ const eventCB = (error, data) => {
   }
 
   const { returnValues: { name, email, company, date } } = data;
-  calendar.assertTimeIsFree(date)
+  calendar.comingEvents()
+    .then(events => calendar.assertTimeIsFree(date, events))
     .then(() => calendar.buildEvent(name, company, email, date))
     .then(calendar.register)
     .then((event) => logger.info({ event }, 'Event registered'))
