@@ -11,6 +11,9 @@ services:
       - CALENDAR_ID
       - OWNER_NAME
       - OWNER_EMAIL
+      - MIN_HOUR
+      - MAX_HOUR
+      - TIMEZONE
       - NODE_ENV
     volumes:
       - ./credentials.json:/usr/src/app/credentials.json
