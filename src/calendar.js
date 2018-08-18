@@ -37,7 +37,7 @@ const calendar = (calendarId, credentials, owner, timeLimits) => {
       throw VError('Time (%s) already taken', event.format());
     }
   };
-
+  
   const validate = (name, company, email, dateTime, currentTime) => {
     if (!name || validator.isEmpty(name)) {
       const msg = 'Event name must not be empty';
@@ -57,7 +57,8 @@ const calendar = (calendarId, credentials, owner, timeLimits) => {
 
     const isTooSoon = dateTime.isBefore(currentTime.clone().add(3, 'h'), 'm');
     const inRange = dateTime.isSameOrAfter(minTime) && dateTime.isBefore(maxTime);
-    if (isTooSoon || !inRange) {
+    const isWeekday = dateTime.day() !== 0 && dateTime.day() !== 6;
+    if (isTooSoon || !inRange || !isWeekday) {
       const msg = 'Events should be at least 3 hours in the future and within limits';
       throw VError(msg);
     }
